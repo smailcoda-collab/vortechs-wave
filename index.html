@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vorTechS WAVE</title>
+  <link rel="stylesheet" href="styles.css?v=5" />
+</head>
+<body>
+  <header class="wave-header">
+    <div class="brand-wrap">
+      <h1>vorTechS WAVE</h1>
+      <span class="badge">swimmable ceiling</span>
+    </div>
+    <div class="controls-bar">
+      <input
+        id="searchInput"
+        type="search"
+        placeholder="Search notes or beta_surfer1..."
+        aria-label="Search notes or beta_surfer1"
+      />
+      <button id="clearSearchBtn" type="button">Clear</button>
+    </div>
+  </header>
+
+  <main class="wave-main">
+    <section class="composer-card" aria-label="Note composer">
+      <div class="font-switcher" role="group" aria-label="Note font styles">
+        <button type="button" class="font-btn active" data-font="typewriter">⌨️ Typewriter</button>
+        <button type="button" class="font-btn" data-font="stencil">🪖 Stencil</button>
+        <button type="button" class="font-btn" data-font="serif">📰 Serif</button>
+      </div>
+
+      <label for="noteAuthor">Author / Tag</label>
+      <input id="noteAuthor" type="text" value="beta_surfer1" />
+
+      <label for="noteText">Ceiling Note</label>
+      <textarea
+        id="noteText"
+        rows="4"
+        placeholder="Write a note for the swimmable ceiling..."
+      ></textarea>
+
+      <div class="composer-actions">
+        <button id="pinNoteBtn" type="button" class="primary-btn">Pin Note</button>
+        <button id="toggleCeilingBtn" type="button">Ceiling: Swimmable</button>
+      </div>
+    </section>
+
+    <section class="ceiling-zone" aria-label="Swimmable ceiling notes">
+      <div class="zone-header">
+        <h2>Swimmable Ceiling</h2>
+        <span id="noteCount">0 notes</span>
+      </div>
+      <div id="notesGrid" class="notes-grid"></div>
+    </section>
+  </main>
+
+  <script src="app.js?v=5"></script>
+</body>
+</html>

@@ -1,61 +1,415 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>vorTechS WAVE</title>
-  <link rel="stylesheet" href="styles.css?v=5" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌊 vorTechS WAVE</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="wave-header">
-    <div class="brand-wrap">
-      <h1>vorTechS WAVE</h1>
-      <span class="badge">swimmable ceiling</span>
+
+    <div id="noteModalOverlay" class="note-modal-overlay hidden" onclick="closeNoteModal(event)">
+        <div id="expandedNoteCard" class="expanded-note-card" onclick="event.stopPropagation()">
+            <div class="expanded-header">
+                <span id="expandedEmoji">🌟</span>
+                <button class="sticky-delete" onclick="closeNoteModal()" title="Close (Esc)">✕</button>
+            </div>
+            <div id="expandedText" class="expanded-text"></div>
+            <div id="expandedMediaContainer"></div>
+            <div style="font-size: 0.75rem; opacity: 0.6; text-align: right;" id="expandedTimestamp"></div>
+            <button class="expanded-close-btn" onclick="closeNoteModal()">Close (Esc)</button>
+        </div>
     </div>
-    <div class="controls-bar">
-      <input
-        id="searchInput"
-        type="search"
-        placeholder="Search notes or beta_surfer1..."
-        aria-label="Search notes or beta_surfer1"
-      />
-      <button id="clearSearchBtn" type="button">Clear</button>
-    </div>
-  </header>
 
-  <main class="wave-main">
-    <section class="composer-card" aria-label="Note composer">
-      <div class="font-switcher" role="group" aria-label="Note font styles">
-        <button type="button" class="font-btn active" data-font="typewriter">⌨️ Typewriter</button>
-        <button type="button" class="font-btn" data-font="stencil">🪖 Stencil</button>
-        <button type="button" class="font-btn" data-font="serif">📰 Serif</button>
-      </div>
+    <header class="ceiling" id="appCeiling">
+        <div class="ceiling-top">
+            <div class="brand-group">
+                <div class="status-beacon"></div>
+                <div class="brand">
+                    <h1 id="headerTitle">🌊 vorTechS WAVE</h1>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="audio-wrapper" id="audioWrapper">
+                    <button class="ice-btn secondary" onclick="toggleAudio()" id="audioToggleBtn">🔊 Audio: Off</button>
+                    <input type="range" min="0" max="1" step="0.05" value="0.15" class="audio-slider" id="audioVolumeSlider" oninput="updateVolume(this.value)" title="Synth Volume">
+                </div>
+                <button class="ice-btn secondary" onclick="toggleVisitorMode()" id="visitorToggleBtn">🏖️ Swimming</button>
+                <button id="iceToggleBtn" class="ice-btn danger" onclick="toggleICE()">ICE</button>
+            </div>
+        </div>
 
-      <label for="noteAuthor">Author / Tag</label>
-      <input id="noteAuthor" type="text" value="beta_surfer1" />
+        <div class="ceiling-subinfo">
+            <span id="timePhaseLabel" class="phase-badge">Dawn Tide</span>
+            <span id="lunarPhaseLabel" class="lunar-badge">🌕 Full Moon</span>
+        </div>
 
-      <label for="noteText">Ceiling Note</label>
-      <textarea
-        id="noteText"
-        rows="4"
-        placeholder="Write a note for the swimmable ceiling..."
-      ></textarea>
+        <div id="iceDrawer" class="ice-drawer hidden">
+            <strong>Emergency Contact:</strong> Walter Smail — <a href="tel:6138031940">613-803-1940</a>
+        </div>
 
-      <div class="composer-actions">
-        <button id="pinNoteBtn" type="button" class="primary-btn">Pin Note</button>
-        <button id="toggleCeilingBtn" type="button">Ceiling: Swimmable</button>
-      </div>
-    </section>
+        <div class="stats-bar">
+            <div class="stat-pill">🌊 Day <span id="streakCount">1</span></div>
+            <div class="stat-pill">🐚 <span id="shellCount">0</span></div>
+            <div class="stat-pill">❤️ <span id="lifeCount">3</span></div>
+        </div>
+    </header>
 
-    <section class="ceiling-zone" aria-label="Swimmable ceiling notes">
-      <div class="zone-header">
-        <h2>Swimmable Ceiling</h2>
-        <span id="noteCount">0 notes</span>
-      </div>
-      <div id="notesGrid" class="notes-grid"></div>
-    </section>
-  </main>
+    <main class="container">
 
-  <script src="app.js?v=5"></script>
+        <section class="card date-card">
+            <h3>📅 Milestone Start Date</h3>
+            <input type="date" id="startDateInput" onchange="updateStartDate()" class="date-input">
+        </section>
+
+        <section class="card search-card" id="swimmerSearchSection">
+            <h3>🔍 Public Swimmer Search</h3>
+            <div class="sticky-row">
+                <input type="text" id="profileSearchInput" class="sticky-input" placeholder="Search swimmer (e.g., beta_surfer1)..." onkeydown="handleProfileSearchKey(event)">
+                <button class="action-btn primary" onclick="runProfileSearch()" style="width: auto; margin-top: 0; white-space: nowrap;">Search</button>
+            </div>
+            <div id="profileSearchStatus" class="search-status"></div>
+            <div id="profileResultCard" class="profile-result-card hidden" onclick="openSearchedProfileCeiling()">
+                <div><strong id="profileResultUsername"></strong> — <span id="profileResultSwimming"></span></div>
+                <div class="profile-result-meta">Start: <span id="profileResultStartDate"></span> • ID: <span id="profileResultId"></span></div>
+                <div id="profileResultActionHint" class="profile-result-hint"></div>
+            </div>
+        </section>
+
+        <section class="card sticky-card" id="stickyNotesSection">
+            <div id="remoteCeilingBanner" class="remote-ceiling-banner hidden">
+                <div><strong>🌊 Swimming Ceiling:</strong> <span id="remoteCeilingTitle"></span></div>
+                <button id="exitRemoteCeilingBtn" class="ice-btn secondary" onclick="exitRemoteCeiling()">🏠 Back to My Ceiling</button>
+            </div>
+
+            <h3 id="stickySectionTitle">📌 Ceiling Sticky Notes & Encouragement</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Click any note to expand & inspect photos. Press Esc to close.</p>
+
+            <div class="board-mode-bar">
+                <button type="button" id="collageBtn" class="board-mode-btn is-active" onclick="setCollageBoardMode()">🧩 Collage</button>
+                <button type="button" id="shuffleBtn" class="board-mode-btn" onclick="setShuffleBoardMode()">🔀 Shuffle</button>
+                <button type="button" id="typewriterBtn" class="board-mode-btn" onclick="setNoteFontStyle('typewriter')">⌨️ Typewriter</button>
+                <button type="button" id="stencilBtn" class="board-mode-btn" onclick="setNoteFontStyle('stencil')">🪖 Stencil</button>
+                <button type="button" id="serifBtn" class="board-mode-btn" onclick="setNoteFontStyle('serif')">📰 Serif</button>
+            </div>
+
+            <div class="sticky-form">
+                <input type="text" id="stickySearchInput" class="sticky-input" placeholder="🔍 Search ceiling notes..." oninput="renderUI()" onkeydown="handleSearchKey(event)" style="margin-bottom: 4px;">
+                <textarea id="stickyInput" class="sticky-input" placeholder="Leave an encouraging note... (Shift+Return for new line, Return to pin)" rows="2" onkeydown="handleStickyKey(event)"></textarea>
+                <input type="text" id="stickyAuthorInput" class="sticky-input" placeholder="Your Surfer Name or screenname..." onkeydown="handleStickyKey(event)">
+
+                <div class="sticky-row">
+                    <label class="action-btn secondary" style="flex: 2; text-align: center; cursor: pointer; padding: 8px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 4px; margin: 0;">
+                        📷 <span id="fileLabelText">Attach Photo from Device</span>
+                        <input type="file" id="stickyFileInput" accept="image/*" class="hidden-file" onchange="handleFileSelect(event)">
+                    </label>
+
+                    <select id="stickyEmojiSelect" class="sticky-input" style="flex: 1; cursor: pointer; margin: 0;">
+                        <option value="🌟">🌟 Star</option>
+                        <option value="💖">💖 Heart</option>
+                        <option value="🍀">🍀 Clover</option>
+                        <option value="🔥">🔥 Fire</option>
+                        <option value="🌊">🌊 Wave</option>
+                        <option value="🚀">🚀 Rocket</option>
+                    </select>
+                </div>
+
+                <div class="sticky-row">
+                    <select id="stickyColorSelect" class="sticky-input" style="cursor: pointer;">
+                        <option value="#ffd166">☀️ Sunburst Yellow</option>
+                        <option value="#ff70a6">💖 Coral Pink</option>
+                        <option value="#00f5d4">🌊 Aqua Mint</option>
+                        <option value="#70d6ff">🔮 Abyssal Lavender</option>
+                        <option value="#9bf6ff">🌲 Pine Moss</option>
+                    </select>
+                    <button class="action-btn secondary" onclick="addStickyNote()" style="flex: 1;">Pin Note</button>
+                </div>
+            </div>
+            <div id="stickyBoard" class="sticky-board"></div>
+        </section>
+
+        <section class="card clock-card" id="clockSection">
+            <div class="portal-header">
+                <h2>🕒 Tidal Chronometer</h2>
+                <span class="zone-badge">Live System Sync</span>
+            </div>
+            <div class="clock-display-grid">
+                <div class="clock-box">
+                    <span class="clock-label">Local Time</span>
+                    <span id="liveDigitalClock" class="clock-value">00:00:00</span>
+                </div>
+                <div class="clock-box">
+                    <span class="clock-label">Time to Midnight</span>
+                    <span id="midnightCountdownTimer" class="clock-value accent-text">00:00:00</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="card sos-card" id="sosSection">
+            <div class="portal-header">
+                <h2>🚨 Rip Current SOS</h2>
+                <span class="zone-badge">Craving Anchor</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Feeling pulled under? Don't fight the current—float and anchor.</p>
+            <button class="sos-btn" onclick="toggleSOSInstructions()" id="sosToggleBtn">Deploy Grounding Protocol</button>
+            <div id="sosInstructions" class="sos-instructions hidden">
+                <strong>Emergency Protocol:</strong>
+                <ol class="sos-steps">
+                    <li><strong>Stop & Drop:</strong> Acknowledge the craving without feeding it. It is just a passing wave.</li>
+                    <li><strong>Ride the Breath:</strong> Scroll down and start the 4-7-8 Tidal Breathwork pacer for 3 full cycles.</li>
+                    <li><strong>Consult Wisdom:</strong> Read the Tide Wisdom proverb below to center your perspective.</li>
+                </ol>
+            </div>
+        </section>
+
+        <section class="card ai-card" id="aiCoachSection">
+            <div class="portal-header">
+                <h2>🛟 Lifeguard Finn</h2>
+                <span class="zone-badge">Local AI Coach</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Consult your local offline AI coach for grounding and guidance.</p>
+
+            <div style="margin-bottom: 8px; display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="userNameInput" class="sticky-input" placeholder="Surfer Name (e.g., C0DA)..." onchange="updateUserName(this.value)">
+            </div>
+
+            <div class="sticky-form">
+                <input type="text" id="aiPromptInput" class="sticky-input" placeholder="Ask Lifeguard Finn anything..." onkeydown="handleAiKey(event)">
+                <button class="action-btn primary" onclick="runAiQuery()">Consult Lifeguard Finn</button>
+            </div>
+            <div id="aiResponseBox" class="journal-history" style="margin-top: 10px; padding: 10px; display: none; background: rgba(0,0,0,0.3); border-radius: 6px; font-size: 0.85rem; line-height: 1.4;"></div>
+        </section>
+
+        <section class="card reef-portal">
+            <div class="portal-header">
+                <h2>Deep-Sea Observation Portal</h2>
+                <span id="oceanZoneBadge" class="zone-badge">Sunlight Zone</span>
+            </div>
+            <div id="reefWindow" class="reef-window">
+                <div id="equippedBoardDisplay" class="board-stage">🪵</div>
+                <div id="equippedLureDisplay" style="position: absolute; top: 12px; right: 14px; font-size: 1.5rem;" title="Equipped Lure">🪱</div>
+                <div id="creatureDisplay" class="creature-stage">🐠</div>
+                <p id="creatureStatus" class="creature-caption">Day 1: Shallow Reef Initialized.</p>
+            </div>
+            <div class="progress-box">
+                <div class="progress-labels">
+                    <span id="progressTitle">Next Tier Progress</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-container">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card proverb-card" id="proverbSection">
+            <h3>
+                <span>📜 Tide Wisdom</span>
+                <button class="proverb-btn" onclick="rotateProverb()">New Proverb</button>
+            </h3>
+            <p id="proverbText" class="proverb-text">"The heavy swell cannot disturb the deep abyss."</p>
+        </section>
+
+        <section class="card trophy-card" id="trophySection">
+            <h3>🏆 Milestone Trophies</h3>
+            <div class="trophy-list" id="trophyGrid"></div>
+        </section>
+
+        <section class="card breath-card" id="breathSection">
+            <div class="breath-header">
+                <h3>🫧 Tidal Breathwork</h3>
+                <span class="zone-badge">4-7-8 Cadence</span>
+            </div>
+            <div class="breath-stage">
+                <div id="breathOrb" class="breath-orb"></div>
+                <div id="breathLabel" class="breath-label">Ready</div>
+            </div>
+            <button id="breathToggleBtn" class="action-btn secondary" onclick="toggleBreathwork()">Start Tidal Pacer</button>
+        </section>
+
+        <section class="card shop-card" id="shopSection">
+            <h3>🏄‍♂️ Surfboard Locker & Hub</h3>
+
+            <div class="locker-hub-nav" style="display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;">
+                <button class="action-btn primary" onclick="switchLockerTab('hub')" id="tabHubBtn" style="flex: 1;">🏠 HUB</button>
+                <button class="action-btn secondary" onclick="switchLockerTab('baitshop')" id="tabBaitshopBtn" style="flex: 1;">🪝 Bait Shop</button>
+                <button class="action-btn secondary" onclick="switchLockerTab('aquarium')" id="tabAquariumBtn" style="flex: 1;">🐠 Aquarium</button>
+                <button class="action-btn secondary" onclick="switchLockerTab('locker')" id="tabLockerBtn" style="flex: 1;">🪵 Surfboard Box</button>
+                <button class="action-btn secondary" onclick="switchLockerTab('trophies')" id="tabTrophiesBtn" style="flex: 1;">🏆 Trophies</button>
+                <button class="action-btn secondary" onclick="switchLockerTab('boredbreakers')" id="tabBoredBreakersBtn" style="flex: 1;">🎲 Bored Breakers</button>
+            </div>
+
+            <div id="lockerHubView" class="locker-subview">
+                <h4>🏄‍♂️ Surfboard Outfitter</h4>
+                <div class="shop-grid" id="shopGrid"></div>
+            </div>
+
+            <div id="lockerBaitshopView" class="locker-subview hidden">
+                <h4>🪝 Bait & Tackle Outfitter</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Purchase custom tackle & lures with your seashells:</p>
+                <div class="shop-grid" id="tackleShopGrid"></div>
+
+                <div class="locker-section" style="margin-top: 16px;">
+                    <h4>🎣 Lure Showcase & Tackle Box</h4>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">Click any owned lure to equip and display it on your board:</p>
+                    <div id="tackleShowcaseBox" class="locker-box"></div>
+                </div>
+            </div>
+
+            <div id="lockerAquariumView" class="locker-subview hidden">
+                <h4>🌊 Earned Sea Creatures & Fish Aquarium</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Every creature unlocked along your journey:</p>
+                <div id="aquariumCreaturesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px;"></div>
+            </div>
+
+            <div id="lockerBoxView" class="locker-subview hidden">
+                <h4>Your Surfboard Locker</h4>
+                <div id="lockerInventory" class="locker-box"></div>
+            </div>
+
+            <div id="lockerTrophiesView" class="locker-subview hidden">
+                <h4>Milestone Trophies Earned</h4>
+                <div class="trophy-list" id="lockerTrophyGrid"></div>
+            </div>
+
+            <div id="lockerBoredBreakersView" class="locker-subview hidden">
+                <h4>🎲 Bored Breakers</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Quick mini-games and question prompts to pass the time.</p>
+
+                <div class="clock-box" style="text-align: left; margin-bottom: 12px;">
+                    <strong>🎱 Query Corner (Yes / No / Maybe)</strong>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 4px 0 8px;">Ask a yes/no question and shake the oracle.</p>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <input type="text" id="queryCornerInput" class="sticky-input" placeholder="Ask a yes/no question..." style="flex: 2; min-width: 180px;">
+                        <button class="action-btn primary" onclick="askQueryCorner()" style="flex: 1; margin-top: 0;">Ask Oracle</button>
+                    </div>
+                    <div id="queryCornerAnswer" style="margin-top: 8px; font-weight: bold; color: var(--accent);"></div>
+                </div>
+
+                <div class="clock-box" style="text-align: left; margin-bottom: 12px;">
+                    <strong>🟢 Simon Sequence</strong>
+                    <p id="simonStatus" style="font-size: 0.78rem; color: var(--text-muted); margin: 4px 0 8px;">Press Start Round to watch and repeat the color pattern.</p>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 8px;">
+                        <button id="simonPad0" class="action-btn secondary" onclick="pressSimonPad(0)" style="background: #ef4444; color: #fff;">🔴 Red</button>
+                        <button id="simonPad1" class="action-btn secondary" onclick="pressSimonPad(1)" style="background: #3b82f6; color: #fff;">🔵 Blue</button>
+                        <button id="simonPad2" class="action-btn secondary" onclick="pressSimonPad(2)" style="background: #22c55e; color: #fff;">🟢 Green</button>
+                        <button id="simonPad3" class="action-btn secondary" onclick="pressSimonPad(3)" style="background: #eab308; color: #0b132b;">🟡 Yellow</button>
+                    </div>
+                    <button class="action-btn secondary" onclick="startSimonGame()" style="margin-top: 0;">Start Simon Round</button>
+                </div>
+
+                <div class="clock-box" style="text-align: left; margin-bottom: 12px;">
+                    <strong>🔢 Guess 1–10</strong>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 4px 0 8px;">Pick a whole number from 1 to 10.</p>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="number" id="guessTenInput" class="sticky-input" min="1" max="10" placeholder="1–10" style="max-width: 100px;">
+                        <button class="action-btn secondary" onclick="submitGuessTen()" style="flex: 1; margin-top: 0;">Guess</button>
+                        <button class="action-btn secondary" onclick="resetGuessTen()" style="flex: 1; margin-top: 0;">New Number</button>
+                    </div>
+                    <div id="guessTenResult" style="margin-top: 8px; font-size: 0.85rem; color: var(--accent-secondary);"></div>
+                </div>
+
+                <div class="clock-box" style="text-align: left; margin-bottom: 12px;">
+                    <strong>🧠 Can You Remember This Number? (8 Digits)</strong>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 4px 0 8px;">An 8-digit number flashes briefly—type it back from memory.</p>
+                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                        <button class="action-btn primary" onclick="flashEightDigitNumber()" style="margin-top: 0;">Flash 8-Digit Number</button>
+                        <span id="eightDigitFlashDisplay" style="font-size: 1.2rem; font-weight: bold; letter-spacing: 3px; color: var(--accent);"></span>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="text" id="eightDigitRecallInput" class="sticky-input" maxlength="8" placeholder="Enter 8 digits...">
+                        <button class="action-btn secondary" onclick="checkEightDigitRecall()" style="flex: 1; margin-top: 0;">Check Memory</button>
+                    </div>
+                    <div id="eightDigitResult" style="margin-top: 8px; font-size: 0.85rem; color: var(--accent-secondary);"></div>
+                </div>
+
+                <div class="clock-box" style="text-align: left; margin-bottom: 12px;">
+                    <strong>📦 Pick a Box</strong>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 4px 0 8px;">Choose Box 1, Box 2, or Box 3.</p>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                        <button class="action-btn secondary" onclick="pickMysteryBox(1)" style="margin-top: 0;">📦 Box 1</button>
+                        <button class="action-btn secondary" onclick="pickMysteryBox(2)" style="margin-top: 0;">📦 Box 2</button>
+                        <button class="action-btn secondary" onclick="pickMysteryBox(3)" style="margin-top: 0;">📦 Box 3</button>
+                    </div>
+                    <div id="pickBoxResult" style="margin-top: 8px; font-size: 0.85rem; color: var(--accent);"></div>
+                </div>
+
+                <div class="clock-box" style="text-align: left;">
+                    <strong>❓ 21 Questions (Question Game)</strong>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 4px 0 8px;">Think of a secret person, place, or thing and ask up to 21 yes/no questions.</p>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <span id="twentyOneCountLabel" class="zone-badge">Questions Left: 21 / 21</span>
+                        <button class="action-btn secondary" onclick="stepTwentyOneQuestion()" style="flex: 1; margin-top: 0;">Ask 1 Question</button>
+                        <button class="action-btn secondary" onclick="resetTwentyOneGame()" style="flex: 1; margin-top: 0;">Reset to 21</button>
+                    </div>
+                    <div id="twentyOnePromptText" style="margin-top: 8px; font-size: 0.85rem; color: var(--accent-secondary);">Starter prompt: Is it alive or made by people?</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card journal-card" id="journalSection">
+            <h3>🌊 Daily Tide Journal</h3>
+            <div class="mood-selector">
+                <button class="mood-btn selected" id="moodCalm" onclick="selectMood('🌊 Calm')">🌊 Calm</button>
+                <button class="mood-btn" id="moodChoppy" onclick="selectMood('⛈️ Choppy')">⛈️ Choppy</button>
+                <button class="mood-btn" id="moodRadiant" onclick="selectMood('☀️ Radiant')">☀️ Radiant</button>
+                <button class="mood-btn" id="moodDeep" onclick="selectMood('🌑 Deep')">🌑 Deep</button>
+            </div>
+            <div class="tag-selector">
+                <button class="tag-btn selected" id="tagReflect" onclick="selectTag('✨ Reflect')">✨ Reflect</button>
+                <button class="tag-btn" id="tagWin" onclick="selectTag('🏆 Win')">🏆 Win</button>
+                <button class="tag-btn" id="tagUrge" onclick="selectTag('⚡ Urge')">⚡ Urge</button>
+                <button class="tag-btn" id="tagGratitude" onclick="selectTag('🙏 Gratitude')">🙏 Gratitude</button>
+            </div>
+            <textarea id="journalInput" class="journal-input" placeholder="Record today's reflection... (Press Return to save)" rows="2" onkeydown="handleJournalKey(event)"></textarea>
+            <button class="action-btn secondary" onclick="saveJournalEntry()">Save Journal Entry</button>
+
+            <div class="mood-analytics" id="moodAnalyticsBox">
+                <div>🌊 Calm: <span id="countCalm">0</span></div>
+                <div>⛈️ Choppy: <span id="countChoppy">0</span></div>
+                <div>☀️ Radiant: <span id="countRadiant">0</span></div>
+                <div>🌑 Deep: <span id="countDeep">0</span></div>
+            </div>
+
+            <div class="filter-bar" id="journalFilterBar">
+                <button class="filter-btn active" id="filterAll" onclick="setJournalFilter('all')">All</button>
+                <button class="filter-btn" id="filterReflect" onclick="setJournalFilter('✨ Reflect')">✨ Reflect</button>
+                <button class="filter-btn" id="filterWin" onclick="setJournalFilter('🏆 Win')">🏆 Win</button>
+                <button class="filter-btn" id="filterUrge" onclick="setJournalFilter('⚡ Urge')">⚡ Urge</button>
+                <button class="filter-btn" id="filterGratitude" onclick="setJournalFilter('🙏 Gratitude')">🙏 Gratitude</button>
+            </div>
+
+            <div id="journalHistory" class="journal-history"></div>
+        </section>
+
+        <section class="card data-card" id="dataSection">
+            <h3>💾 Data Vault</h3>
+            <div class="data-actions">
+                <button class="action-btn secondary" onclick="exportData()">Export Backup</button>
+                <button class="action-btn secondary" onclick="document.getElementById('importFile').click()">Import Backup</button>
+                <input type="file" id="importFile" class="hidden-file" accept=".json" onchange="importData(event)">
+            </div>
+        </section>
+
+        <section class="card controls-panel" id="controlsSection">
+            <div class="btn-grid">
+                <button id="dailyClaimBtn" class="action-btn primary" onclick="claimDailyLogin()">
+                    Claim Daily Check-In (+3 🐚)
+                </button>
+                <button class="action-btn secondary" onclick="requestDailyNotifications()">
+                    🔔 Enable Daily Reminder Notifications
+                </button>
+            </div>
+        </section>
+
+        <section class="card danger-zone" id="dangerSection">
+            <button class="action-btn danger" onclick="triggerResetPenalty()">
+                Relapse Reset
+            </button>
+        </section>
+
+    </main>
+
+    <script src="app.js" defer></script>
 </body>
 </html>

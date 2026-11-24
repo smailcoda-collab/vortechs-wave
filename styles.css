@@ -1,0 +1,217 @@
+:root {
+  --bg: #0b1020;
+  --panel: #131b33;
+  --panel-border: #26345e;
+  --text: #eef3ff;
+  --muted: #9fb0d9;
+  --accent: #38bdf8;
+  --accent-text: #06131f;
+  --ceiling-bg: rgba(56, 189, 248, 0.08);
+  --ceiling-border: rgba(56, 189, 248, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.wave-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(11, 16, 32, 0.94);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--panel-border);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.brand-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.brand-wrap h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: 0.04em;
+}
+
+.badge {
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--ceiling-bg);
+  border: 1px solid var(--ceiling-border);
+  color: var(--accent);
+}
+
+.controls-bar {
+  display: flex;
+  gap: 8px;
+}
+
+.controls-bar input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel);
+  color: var(--text);
+}
+
+.wave-main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
+  display: grid;
+  gap: 18px;
+}
+
+.composer-card,
+.ceiling-zone {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.font-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.font-btn,
+button {
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: #1b2748;
+  color: var(--text);
+  padding: 9px 12px;
+  font-size: 0.9rem;
+}
+
+.font-btn.active,
+.primary-btn {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+input[type="text"],
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.composer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.ceiling-zone.swimmable-active {
+  background: linear-gradient(180deg, var(--ceiling-bg), var(--panel));
+  border-color: var(--ceiling-border);
+}
+
+.zone-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.zone-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+#noteCount {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.notes-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.note-card {
+  background: var(--bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 12px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.ceiling-zone.swimmable-active .note-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+}
+
+.note-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.note-body {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  font-size: 1rem;
+}
+
+/* Note font styles */
+.font-typewriter {
+  font-family: "Courier New", Courier, monospace;
+}
+
+.font-stencil {
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.font-serif {
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+.delete-btn {
+  padding: 4px 8px;
+  font-size: 0.78rem;
+}
